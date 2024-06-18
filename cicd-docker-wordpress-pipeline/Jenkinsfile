@@ -6,6 +6,8 @@ pipeline {
     DOCKER_HUB_REPO_MYSQL = "bjwrd/mysql"
     CONTAINER_NAME_WORDPRESS = "wordpress"
     CONTAINER_NAME_MYSQL = "mysql"
+    TAG= "V1.${BUILD_NUMBER}"
+
   }
   
   stages {
@@ -32,14 +34,6 @@ pipeline {
           }
         }
     }
-
-    stage('Scan Image') {
-      steps {
-          echo 'Scanning Image...'
-          sh 'trivy image $DOCKER_HUB_REPO_WORDPRESS:latest --severity MEDIUM,HIGH,CRITICAL > wordpress_vulnerability_output'
-          sh 'trivy image $DOCKER_HUB_REPO_MYSQL:latest --severity MEDIUM,HIGH,CRITICAL > mysql_vulnerability_output'
-          }
-        }
 
     stage('Push') {
       steps {
