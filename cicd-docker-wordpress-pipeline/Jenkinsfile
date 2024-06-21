@@ -57,6 +57,7 @@ pipeline {
           sh 'docker run -d bjwrd/wordpress'
           sh 'docker pull $DOCKER_HUB_REPO_MYSQL:latest'
           sh 'docker run -d bjwrd/mysql'
+          sh 'echo 'done' '
           }
         }
       }
