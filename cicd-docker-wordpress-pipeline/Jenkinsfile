@@ -13,7 +13,7 @@ pipeline {
   stages {
     stage('Checkout') {
            steps {
-               checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/BJWRD/cicd-docker-wordpress-pipeline']]])
+               checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Asaf01/ci']]])
             }
     }
 
