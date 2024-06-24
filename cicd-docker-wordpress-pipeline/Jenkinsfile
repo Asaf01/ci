@@ -11,9 +11,10 @@ pipeline {
     stages{
         stage("clone"){
             steps{
-                sh 'git clone ${REPO_URL}'
+                
                 sh 'pwd'
-                sh 'find .'
+                sh 'docker build -t "wordpress"'
+                sh 'docker images '
      }
                }   
          }
