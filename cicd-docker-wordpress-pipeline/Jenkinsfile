@@ -8,11 +8,20 @@ pipeline {
         DIR_NAME= 'cicd-docker-wordpress-pipeline'
     }
  
+   stages {
+        stage('Cleanup') {
+            steps {
+                sh '''
+                    set -e
+                    rm -rf ./ci ./cicd-docker-wordpress-pipeline || true
+                '''
+            }
+        }
+   }
     stages{
         stage("clone"){
             steps{
-                sh 'sh rm -rf ./*'
-                sh 'sleep 1'
+                
                 sh 'git clone ${REPO_URL}'
                 sh 'pwd'
                 sh 'docker build -t my_image .'
