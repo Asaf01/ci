@@ -5,17 +5,23 @@ pipeline {
         REPO_URL= 'https://github.com/Asaf01/ci'
         CONTAINER_NAME = "wordpress"
         IMAGE_NAME = 'wordpress'
-        
+        DIR_NAME= 'cicd-docker-wordpress-pipeline'
     }
  
     stages{
         stage("clone"){
             steps{
-                
+                sh 'git clone ${REPO_URL}'
                 sh 'pwd'
                 sh 'docker build -t my_image .'
                 sh 'docker images '
      }
                }   
          }
+
+    post{
+        always{
+            sh 'rm -fr ${DIR_NAME}'
+            
+        }         
                }
