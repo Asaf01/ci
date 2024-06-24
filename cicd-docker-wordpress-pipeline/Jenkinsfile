@@ -64,6 +64,7 @@ pipeline {
             sh 'docker rmi -f $(docker images -qa)'
             sh 'docker logout' 
         }
+    }
         success{
             echo "========pipeline executed successfully ========"    
 
