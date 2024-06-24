@@ -5,8 +5,7 @@ pipeline {
         REPO_URL= 'https://github.com/Asaf01/ci'
         CONTAINER_NAME = "wordpress"
         IMAGE_NAME = 'wordpress'
-        TAG = "V1.${BUILD_NUMBER}"
-        DOCKERHUB_CREDENTIALS = credentials('docker')
+        
     }
  
     stages{
@@ -15,22 +14,7 @@ pipeline {
                 sh 'git clone ${REPO_URL}'
                 sh 'pwd'
                 sh 'find .'
-            }
-        
-        }
-    
-        stage('Build Image') {
-            steps {
-                script {
-                    sh "docker build -t wordpress:v1 ."
-                }
-            }
-        }
-    
-    
-    
-       
-        
-       }
-        
-    }
+     }
+               }   
+         }
+               }
