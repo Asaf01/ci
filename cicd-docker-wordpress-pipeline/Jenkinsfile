@@ -14,7 +14,7 @@ pipeline {
         stage("clone") {
             steps {
                 sh 'pwd'
-                sh  dir('cicd-docker-wordpress-pipeline')
+                sh  dir('ci/cicd-docker-wordpress-pipeline')
                 sh 'pwd'
                 sh 'docker build -t my_image --file ../dockerfile .'
                 sh 'docker images '
