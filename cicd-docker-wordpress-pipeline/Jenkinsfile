@@ -5,7 +5,7 @@ pipeline {
         REPO_URL = 'https://github.com/Asaf01/ci'
         IMAGE_NAME = 'wordpress'
         DOCKERFILE_DIR = 'cicd-docker-wordpress-pipeline'
-        DOCKERHUB_CREDENTIALS = 'dockerhub_login'  // Ensure this matches the ID of your credentials
+        DOCKERHUB_CREDENTIALS = 'dockerhublogin'  // Updated to match the correct credentials ID
         DOCKERHUB_REPO = 'bendrorasaf/wordpress'
     }
 
