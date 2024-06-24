@@ -5,7 +5,7 @@ pipeline {
         REPO_URL = 'https://github.com/Asaf01/ci'
         IMAGE_NAME = 'wordpress'
         DOCKERFILE_DIR = 'cicd-docker-wordpress-pipeline'
-        DOCKERHUB_CREDENTIALS = 'dockerhublogin'  // Updated to match the correct credentials ID
+        DOCKERHUB_CREDENTIALS = 'dockerhublogin'  // Ensure this matches the ID of your credentials
         DOCKERHUB_REPO = 'bendrorasaf/wordpress'
         K8S_REPO_URL = 'https://github.com/Asaf01/WP_PROJECT'
         K8S_FILES_DIR = 'WP_PROJECT/K8S Deployment'
@@ -50,8 +50,9 @@ pipeline {
             steps {
                 // Run a container from the image and execute a test command
                 script {
-                    sh 'echo "Testing the Docker image..."'
-                    // Add your actual test commands here
+                    dockerImage.inside {
+                        sh 'npm test'  // Adjust this command based on your test framework
+                    }
                 }
             }
         }
@@ -61,7 +62,7 @@ pipeline {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', "${DOCKERHUB_CREDENTIALS}") {
                         dockerImage.push("${VERSION}")
-                        dockerImage.push('latest')  // Optionally push the image with the 'latest' tag
+                        // No need to push the latest tag
                     }
                 }
             }
@@ -70,18 +71,36 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    // Clone the repository with Kubernetes deployment files
-                    git branch: 'main', url: "${K8S_REPO_URL}"
-
-                    // Apply the Kubernetes deployment files
+                    // Ensure kubectl is installed and configured
                     sh '''
-                    kubectl create -f ${K8S_FILES_DIR}/mysql-pv.yaml
-                    kubectl create -f ${K8S_FILES_DIR}/mysql-config.yaml
-                    kubectl create -f ${K8S_FILES_DIR}/db-root-cred.yaml
-                    kubectl create -f ${K8S_FILES_DIR}/db-cred.yaml
-                    kubectl create -f ${K8S_FILES_DIR}/mysql.yaml
-                    kubectl create -f ${K8S_FILES_DIR}/wp-configmap.yaml
-                    kubectl create -f ${K8S_FILES_DIR}/wordpress.yaml
+                    if ! command -v kubectl &> /dev/null
+                    then
+                        echo "kubectl could not be found"
+                        # Install kubectl if not installed (example for Ubuntu)
+                        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                        chmod +x kubectl
+                        sudo mv kubectl /usr/local/bin/
+                    fi
+
+                    # Ensure kubectl is configured to use Minikube
+                    if ! kubectl config current-context | grep -q 'minikube'
+                    then
+                        echo "Configuring kubectl to use Minikube"
+                        minikube start
+                        kubectl config use-context minikube
+                    fi
+
+                    # Clone the repository with Kubernetes deployment files
+                    git clone ${K8S_REPO_URL}
+
+                    # Apply the Kubernetes deployment files
+                    kubectl apply -f ${K8S_FILES_DIR}/mysql-pv.yaml
+                    kubectl apply -f ${K8S_FILES_DIR}/mysql-config.yaml
+                    kubectl apply -f ${K8S_FILES_DIR}/db-root-cred.yaml
+                    kubectl apply -f ${K8S_FILES_DIR}/db-cred.yaml
+                    kubectl apply -f ${K8S_FILES_DIR}/mysql.yaml
+                    kubectl apply -f ${K8S_FILES_DIR}/wp-configmap.yaml
+                    kubectl apply -f ${K8S_FILES_DIR}/wordpress.yaml
                     '''
                 }
             }
