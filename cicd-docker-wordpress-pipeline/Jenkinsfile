@@ -26,7 +26,7 @@ pipeline {
     steps {
      script {
       echo 'Building Image'
-      sh 'docker build -t ${IMAGE_NAME}:${TAG} 
+      sh 'docker build -t ${TAG} 
       sh 'docker images'
      }
     }
