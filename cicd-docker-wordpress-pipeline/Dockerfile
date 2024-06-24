@@ -28,5 +28,5 @@ RUN chmod +x /entrypoint.sh
 RUN ln -sf /dev/stdout /var/log/apache2/access.log \
     && ln -sf /dev/stderr /var/log/apache2/error.log
 
-EXPOSE 90
+EXPOSE 80
 ENTRYPOINT ["/entrypoint.sh"]
