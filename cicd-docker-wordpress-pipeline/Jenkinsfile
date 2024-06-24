@@ -5,9 +5,8 @@ pipeline {
         REPO_URL = 'https://github.com/Asaf01/ci'
         IMAGE_NAME = 'wordpress'
         DOCKERFILE_DIR = 'cicd-docker-wordpress-pipeline'
-        DOCKERHUB_CREDENTIALS = 'docker-hub-credentials'  // Ensure this matches the ID of your credentials
+        DOCKERHUB_CREDENTIALS = 'dockerhub_login'  // Ensure this matches the ID of your credentials
         DOCKERHUB_REPO = 'bendrorasaf/wordpress'
-        VERSION = "1.0.${env.BUILD_NUMBER}"  // Versioning strategy using Jenkins build number
     }
 
     stages {
@@ -18,11 +17,27 @@ pipeline {
             }
         }
         
+        stage('Determine Version') {
+            steps {
+                script {
+                    // Fetch the latest version from Docker Hub and increment it
+                    def latestTag = sh(
+                        script: "curl -s https://hub.docker.com/v2/repositories/${DOCKERHUB_REPO}/tags/?page_size=1 | jq -r '.results[0].name'",
+                        returnStdout: true
+                    ).trim()
+
+                    // Extract the numeric part and increment it
+                    def versionNumber = latestTag ? latestTag.split(":")[1].toInteger() + 1 : 1
+                    env.VERSION = "v${versionNumber}"
+                }
+            }
+        }
+        
         stage('Build Docker Image') {
             steps {
                 // Build the Docker image
                 script {
-                    dockerImage = docker.build("${IMAGE_NAME}", "${DOCKERFILE_DIR}")
+                    dockerImage = docker.build("${DOCKERHUB_REPO}:${VERSION}", "${DOCKERFILE_DIR}")
                 }
             }
         }
@@ -31,10 +46,8 @@ pipeline {
             steps {
                 // Run a container from the image and execute a test command
                 script {
-                    docker.image("${IMAGE_NAME}").inside {
-                        sh 'echo "Testing the Docker image..."'
-                        // Add your actual test commands here
-                    }
+                    sh 'echo "Testing the Docker image..."'
+                    // Add your actual test commands here
                 }
             }
         }
