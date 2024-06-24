@@ -2,69 +2,35 @@ pipeline {
     agent any
     
     environment {
-        DOCKER_HUB_REPO = "bendrorasaf/wordpress"
+        REPO_URL= 'https://github.com/Asaf01/ci'
         CONTAINER_NAME = "wordpress"
         IMAGE_NAME = 'wordpress'
         TAG = "V1.${BUILD_NUMBER}"
         DOCKERHUB_CREDENTIALS = credentials('docker')
     }
  
-    stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
+    stages{
+        stage("clone"){
+            steps{
+                sh 'git clone ${REPO_URL}'
+                sh 'pwd'
+                sh 'find .'
             }
+        
         }
     
         stage('Build Image') {
             steps {
                 script {
-                    sh "docker build -t ${IMAGE_NAME}:${TAG} ."
+                    sh "docker build -t wordpress:v1 ."
                 }
             }
         }
     
-        stage('Test Container') {
-            steps {
-                script {
-                    sh "docker run -d --name ${CONTAINER_NAME} ${IMAGE_NAME}:${TAG}"
-                    sh "docker stop ${CONTAINER_NAME}"
-                    sh "docker rm ${CONTAINER_NAME}"
-                }
-            }
-        }
     
-        stage("Login to DockerHub") {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'docker', passwordVariable: 'DOCKERHUB_PSW', usernameVariable: 'DOCKERHUB_USR')]) {
-                        sh "echo \$DOCKERHUB_PSW | docker login -u \$DOCKERHUB_USR --password-stdin"
-                    }
-                }
-            }
-        }
     
-        stage("Push Image") {
-            steps {
-                sh "docker tag ${IMAGE_NAME}:${TAG} ${DOCKER_HUB_REPO}:${TAG}"
-                sh "docker push ${DOCKER_HUB_REPO}:${TAG}" 
-            }
-        }
+       
+        
+       }
+        
     }
-  
-    post {
-        always {
-            node {
-                sh 'docker logout'
-                sh 'docker rmi -f $(docker images -q) || true'
-            }
-            echo 'Cleanup completed'
-        }
-        success {
-            echo "Pipeline executed successfully"
-        }
-        failure {
-            echo "Pipeline execution failed"
-        }
-    }
-}
