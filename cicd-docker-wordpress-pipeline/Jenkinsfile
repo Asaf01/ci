@@ -1,75 +1,23 @@
 pipeline {
     agent any
     
-    environment {
-        REPO_URL = 'https://github.com/Asaf01/ci'
-        DOCKER_HUB_REPO_WORDPRESS = "bendrorasaf/wordpress"
-        CONTAINER_NAME_WORDPRESS = "wordpress"
-        IMAGE_NAME = 'wordpress'
-        TAG = "V1.${BUILD_NUMBER}"
-        ACCOUNT_NAME = 'bendrorasaf/wordpress'
-        DOCKERHUB_CREDENTIALS = credentials('docker')
-    }
- 
     stages {
-        stage('Checkout') {
+        stage('Test') {
             steps {
-                checkout scm
-            }
-        }
-    
-        stage('Building Image') {
-            steps {
-                script {
-                    echo 'Building Image'
-                    sh "docker build -t ${IMAGE_NAME}:${TAG} ."
-                    sh 'docker images'
-                }
-            }
-        }
-    
-        stage('Testing Container') {
-            steps {
-                script {
-                    echo 'Testing Container...'
-                    sh "docker run -d --name ${CONTAINER_NAME_WORDPRESS} ${IMAGE_NAME}:${TAG}"
-                    sh "docker stop ${CONTAINER_NAME_WORDPRESS} || true"
-                    sh "docker rm ${CONTAINER_NAME_WORDPRESS} || true"
-                }
-            }
-        }
-    
-        stage("Login to DockerHub") {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'docker', passwordVariable: 'DOCKERHUB_PSW', usernameVariable: 'DOCKERHUB_USR')]) {
-                        sh "echo \$DOCKERHUB_PSW | docker login -u \$DOCKERHUB_USR --password-stdin"
-                    }
-                }
-            }
-        }
-    
-        stage("Push Image") {
-            steps {
-                sh "docker tag ${IMAGE_NAME}:${TAG} ${ACCOUNT_NAME}:${TAG}"
-                sh "docker push ${ACCOUNT_NAME}:${TAG}" 
-            }
-        }
-
-        stage('Cleanup') {
-            steps {
-                sh 'docker rmi -f $(docker images -qa) || true'
-                sh 'docker logout'
+                echo 'Hello, World!'
             }
         }
     }
-  
+    
     post {
+        always {
+            echo 'This will always run'
+        }
         success {
-            echo "========pipeline executed successfully ========"    
+            echo 'This will run only if successful'
         }
         failure {
-            echo "========pipeline execution failed========"
+            echo 'This will run only if failed'
         }
     }
 }
