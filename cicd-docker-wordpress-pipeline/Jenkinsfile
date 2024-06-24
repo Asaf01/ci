@@ -10,22 +10,14 @@ pipeline {
  
    
 
-   stages{
-        stage("clone") {
+    stage('Build Image') {
             steps {
-                sh 'pwd'
-                sh  dir('ci/cicd-docker-wordpress-pipeline')
-                sh 'pwd'
-                sh 'docker build -t my_image --file ../dockerfile .'
-                sh 'docker images '
-     }
+                dir('ci/cicd-docker-wordpress-pipeline') {
+                    script {
+                       sh 'docker build -t my_image --file ../dockerfile .'
+                       sh 'docker images '
+       }
                }   
-         }
-
-    post{
-        always{
-            sh 'rm -fr ${DIR_NAME}'
-            
-        }         
-               }
-}
+            }
+            }
+    }
