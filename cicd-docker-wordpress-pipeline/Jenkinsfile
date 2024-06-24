@@ -1,16 +1,19 @@
-pipeline{
-    agent any
-    environment {
-        REPO_URL= 'https://github.com/devopsPRO27/Docker-exercise-3'
-        IMAGE_NAME= 'resume'
-        DIR_NAME='Docker-exercise-3'
-        TAG= "V1.${BUILD_NUMBER}"
-        CONTAINER_NAME= 'sorry'
-        REGISTRY= 'DockerHub'
-        ACCOUNT_NAME= 'hothaifaz'
-        NEW_IMAGE_NAME= 'reponame+'
-    }
-    stages{
+pipeline {
+  agent any
+
+  environment {
+    REPO_URL= 'https://github.com/asaf01/WP_PROJECT'
+    DOCKER_HUB_REPO_WORDPRESS = "bendrorasaf/wordpress"
+    CONTAINER_NAME_WORDPRESS = "wordpress"
+    IMAGE_NAME= 'wordpress'
+    TAG= "V1.${BUILD_NUMBER}"
+    REGISTRY= 'hub.docker.com'
+    ACCOUNT_NAME= 'bendrorasaf/wordpress'
+    DOCKERHUB_CREDENIALS = credentials('docker')
+  }
+ 
+
+  stages{
         stage("clone"){
             steps{
                 sh 'git clone ${REPO_URL}'
@@ -19,25 +22,40 @@ pipeline{
             }
         
         }
-        stage("build"){
+  stage('Building Image') {
+    steps {
+     script {
+      echo 'Building Image'
+      sh 'docker build -t ${IMAGE_NAME}:${TAG} --file ../wordpress/dockerfile
+      sh 'docker images'
+     }
+    }
+   }
+    stage('Test Container') {
+        steps {
+          script {
+            echo 'Testing Container...'
+            withDockerRegistry([ credentialsId: "dockerhublogin", url: "" ]) {
+            sh 'docker run -d --name $CONTAINER_NAME_WORDPRESS $DOCKER_HUB_REPO_WORDPRESS'
+            sh 'docker stop $CONTAINER_NAME_WORDPRESS || true'
+            sh 'docker rm $CONTAINER_NAME_WORDPRESS || true'
+            }
+          }
+        }
+    }
+
+        stage("Login to DockerHub"){
             steps{
-                dir('Docker-exercise-3/ResumeMaker/'){
-                    sh 'docker build -t ${IMAGE_NAME}:${TAG} --file ../../jenkins6/if_statments/Dockerfile .'
-                    sh 'docker images'
-                }
+                sh 'echo ${DOCKERHUB_CREDENIALS_USR}'
+                sh "echo ${DOCKERHUB_CREDENIALS_PSW} | docker login -u ${DOCKERHUB_CREDENIALS_USR} --password-stdin "
             }
         
         }
-        stage("test"){
-            when { branch 'jenkins' }
+        stage("push image"){
             steps{
-                echo "========ejenkins========"
-            }
-        
-        }
-        stage("push"){
-            steps{
-                echo "========executing A========"
+                sh "docker tag ${IMAGE_NAME}:${TAG} ${ACCOUNT_NAME}:${TAG}"
+                sh "docker images"
+                sh "docker push ${ACCOUNT_NAME}:${TAG}" 
             }
         
         }
@@ -46,12 +64,10 @@ pipeline{
         always{
             sh 'rm -fr ${DIR_NAME}'
             sh 'docker rmi -f $(docker images -qa)'
+            sh 'docker logout' 
         }
         success{
-            echo "========pipeline executed successfully ========"
-        }
-        failure{
-            echo "========pipeline execution failed========"
-        }
-    }
+            echo "========pipeline executed successfully ========"    
+
+
 }
