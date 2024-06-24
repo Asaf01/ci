@@ -1,22 +1,20 @@
 pipeline {
     agent any
+    
     environment {
-        REPO_URL = 'https://github.com/asaf01/ci/cicd-docker-wordpress-pipeline'
+        REPO_URL = 'https://github.com/Asaf01/ci'
         DOCKER_HUB_REPO_WORDPRESS = "bendrorasaf/wordpress"
         CONTAINER_NAME_WORDPRESS = "wordpress"
         IMAGE_NAME = 'wordpress'
         TAG = "V1.${BUILD_NUMBER}"
-        REGISTRY = 'hub.docker.com'
         ACCOUNT_NAME = 'bendrorasaf/wordpress'
-        DOCKERHUB_CREDENIALS = credentials('docker')
+        DOCKERHUB_CREDENTIALS = credentials('docker')
     }
  
     stages {
-        stage("Clone") {
+        stage('Checkout') {
             steps {
-                sh "git clone ${REPO_URL}"
-                sh 'pwd'
-                sh 'find .'
+                checkout scm
             }
         }
     
@@ -43,15 +41,17 @@ pipeline {
     
         stage("Login to DockerHub") {
             steps {
-                sh 'echo ${DOCKERHUB_CREDENIALS_USR}'
-                sh "echo ${DOCKERHUB_CREDENIALS_PSW} | docker login -u ${DOCKERHUB_CREDENIALS_USR} --password-stdin"
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'docker', passwordVariable: 'DOCKERHUB_PSW', usernameVariable: 'DOCKERHUB_USR')]) {
+                        sh "echo \$DOCKERHUB_PSW | docker login -u \$DOCKERHUB_USR --password-stdin"
+                    }
+                }
             }
         }
     
         stage("Push Image") {
             steps {
                 sh "docker tag ${IMAGE_NAME}:${TAG} ${ACCOUNT_NAME}:${TAG}"
-                sh "docker images"
                 sh "docker push ${ACCOUNT_NAME}:${TAG}" 
             }
         }
