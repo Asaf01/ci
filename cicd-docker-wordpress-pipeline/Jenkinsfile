@@ -23,14 +23,14 @@ pipeline {
         
         }
   stage('Building Image') {
-    steps {
-     script {
+  steps {
+    script {
       echo 'Building Image'
-      sh 'docker build -t ${TAG} 
+      sh "docker build -t ${DOCKER_HUB_REPO_WORDPRESS}:${TAG} ."
       sh 'docker images'
-     }
     }
-   }
+  }
+}
     stage('Test Container') {
         steps {
           script {
