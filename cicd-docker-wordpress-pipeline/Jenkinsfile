@@ -35,11 +35,9 @@ pipeline {
         steps {
           script {
             echo 'Testing Container...'
-            withDockerRegistry([ credentialsId: "dockerhublogin", url: "" ]) {
             sh 'docker run -d --name $CONTAINER_NAME_WORDPRESS $DOCKER_HUB_REPO_WORDPRESS'
             sh 'docker stop $CONTAINER_NAME_WORDPRESS || true'
             sh 'docker rm $CONTAINER_NAME_WORDPRESS || true'
-            }
           }
         }
     }
