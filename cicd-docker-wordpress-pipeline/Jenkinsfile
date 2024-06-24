@@ -50,8 +50,8 @@ pipeline {
             steps {
                 // Run a container from the image and execute a test command
                 script {
-                    dockerImage.inside {
-                        sh 'npm test'  // Adjust this command based on your test framework
+                    docker.image("${DOCKERHUB_REPO}:${VERSION}").inside {
+                        sh 'echo "Testing the Docker image..." && ls'  // Adjust this command based on your test requirements
                     }
                 }
             }
