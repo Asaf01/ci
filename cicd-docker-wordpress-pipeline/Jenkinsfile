@@ -22,12 +22,14 @@ pipeline {
                 script {
                     // Fetch the latest version from Docker Hub and increment it
                     def latestTag = sh(
-                        script: "docker run --rm appropriate/curl -s https://hub.docker.com/v2/repositories/${DOCKERHUB_REPO}/tags/?page_size=1 | docker run --rm stedolan/jq -r '.results[0].name'",
+                        script: """
+                        curl -s https://hub.docker.com/v2/repositories/${DOCKERHUB_REPO}/tags/?page_size=1 | grep -oP '"name":\\s*"v\\K\\d+' | sort -nr | head -n1
+                        """,
                         returnStdout: true
                     ).trim()
 
-                    // Extract the numeric part and increment it
-                    def versionNumber = latestTag ? latestTag.replaceAll('v', '').toInteger() + 1 : 1
+                    // Increment the version number
+                    def versionNumber = latestTag ? latestTag.toInteger() + 1 : 1
                     env.VERSION = "v${versionNumber}"
                 }
             }
