@@ -1,23 +1,53 @@
 pipeline {
     agent any
-    
-    environment {
-        REPO_URL= 'https://github.com/Asaf01/ci'
-        CONTAINER_NAME = "wordpress"
-        IMAGE_NAME = 'wordpress'
-        DIR_NAME= 'cicd-docker-wordpress-pipeline'
-    }
- 
-   
 
-    stage('Build') {
-            steps {
-                dir('ci/cicd-docker-wordpress-pipeline') {
-                    script {
-                       sh 'docker build -t my_image --file ../dockerfile .'
-                       sh 'docker images '
-       }
-               }   
-            }
-            }
+    environment {
+        REPO_URL = 'https://github.com/Asaf01/ci'
+        IMAGE_NAME = 'myimage'
+        DOCKERFILE_DIR = 'cicd-docker-wordpress-pipeline'
     }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                // Checkout the repository
+                git branch: 'main', url: "${REPO_URL}"
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                // Build the Docker image
+                script {
+                    def dockerImage = docker.build("${IMAGE_NAME}", "${DOCKERFILE_DIR}")
+                }
+            }
+        }
+
+        stage('Test Docker Image') {
+            steps {
+                // Run a container from the image and execute a test command
+                script {
+                    docker.image("${IMAGE_NAME}").inside {
+                        sh 'echo "Testing the Docker image..."'
+                        // Add your actual test commands here
+                    }
+                }
+            }
+        }
+        
+        stage('Delete Workspace') {
+            steps {
+                // Cleanup workspace
+                deleteDir()
+            }
+        }
+    }
+
+    post {
+        always {
+            // Ensure workspace is cleaned up after the build
+            cleanWs()
+        }
+    }
+}
