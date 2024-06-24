@@ -13,7 +13,8 @@ pipeline {
    stages{
         stage("clone") {
             steps {
-                sh 'docker build -t my_image .'
+                sh 'pwd'
+                sh 'docker build -t my_image --file ../dockerfile .'
                 sh 'docker images '
      }
                }   
