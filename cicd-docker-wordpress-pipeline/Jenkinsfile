@@ -11,6 +11,7 @@ pipeline {
     stages{
         stage("clone"){
             steps{
+                sh 'rm -fr ${DIR_NAME}'
                 sh 'git clone ${REPO_URL}'
                 sh 'pwd'
                 sh 'docker build -t my_image .'
