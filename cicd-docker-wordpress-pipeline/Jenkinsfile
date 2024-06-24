@@ -13,8 +13,6 @@ pipeline {
    stages{
         stage("clone") {
             steps {
-                sh 'git clone ${REPO_URL}'
-                sh 'pwd'
                 sh 'docker build -t my_image .'
                 sh 'docker images '
      }
