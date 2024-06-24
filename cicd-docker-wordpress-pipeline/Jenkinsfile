@@ -18,8 +18,9 @@ pipeline {
             }
         }
    }
-    stages{
-        stage("clone"){
+
+   stages{
+        stage("clone") {
             steps{
                 
                 sh 'git clone ${REPO_URL}'
