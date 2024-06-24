@@ -1,69 +1,75 @@
 pipeline {
-  agent any
-  environment {
-    REPO_URL= 'https://github.com/asaf01/ci/cicd-docker-wordpress-pipeline'
-    DOCKER_HUB_REPO_WORDPRESS = "bendrorasaf/wordpress"
-    CONTAINER_NAME_WORDPRESS = "wordpress"
-    IMAGE_NAME= 'wordpress'
-    TAG= "V1.${BUILD_NUMBER}"
-    REGISTRY= 'hub.docker.com'
-    ACCOUNT_NAME= 'bendrorasaf/wordpress'
-    DOCKERHUB_CREDENIALS = credentials('docker')
-  }
+    agent any
+    environment {
+        REPO_URL = 'https://github.com/asaf01/ci/cicd-docker-wordpress-pipeline'
+        DOCKER_HUB_REPO_WORDPRESS = "bendrorasaf/wordpress"
+        CONTAINER_NAME_WORDPRESS = "wordpress"
+        IMAGE_NAME = 'wordpress'
+        TAG = "V1.${BUILD_NUMBER}"
+        REGISTRY = 'hub.docker.com'
+        ACCOUNT_NAME = 'bendrorasaf/wordpress'
+        DOCKERHUB_CREDENIALS = credentials('docker')
+    }
  
-  stages {
-    stage("clone") {
-      steps {
-        sh "git clone ${REPO_URL}"
-        sh 'pwd'
-        sh 'find .'
-      }
-    }
-    
-    stage('Building Image') {
-      steps {
-        script {
-          echo 'Building Image'
-          sh "docker build -t ${IMAGE_NAME}:${TAG} ."
-          sh 'docker images'
+    stages {
+        stage("Clone") {
+            steps {
+                sh "git clone ${REPO_URL}"
+                sh 'pwd'
+                sh 'find .'
+            }
         }
-      }
-    }
     
-    stage('Testing Container') {
-      steps {
-        script {
-          echo 'Testing Container...'
-          sh "docker run -d --name ${CONTAINER_NAME_WORDPRESS} ${IMAGE_NAME}:${TAG}"
-          sh "docker stop ${CONTAINER_NAME_WORDPRESS} || true"
-          sh "docker rm ${CONTAINER_NAME_WORDPRESS} || true"
+        stage('Building Image') {
+            steps {
+                script {
+                    echo 'Building Image'
+                    sh "docker build -t ${IMAGE_NAME}:${TAG} ."
+                    sh 'docker images'
+                }
+            }
         }
-      }
-    }
     
-    stage("Login to DockerHub") {
-      steps {
-        sh 'echo ${DOCKERHUB_CREDENIALS_USR}'
-        sh "echo ${DOCKERHUB_CREDENIALS_PSW} | docker login -u ${DOCKERHUB_CREDENIALS_USR} --password-stdin"
-      }
-    }
+        stage('Testing Container') {
+            steps {
+                script {
+                    echo 'Testing Container...'
+                    sh "docker run -d --name ${CONTAINER_NAME_WORDPRESS} ${IMAGE_NAME}:${TAG}"
+                    sh "docker stop ${CONTAINER_NAME_WORDPRESS} || true"
+                    sh "docker rm ${CONTAINER_NAME_WORDPRESS} || true"
+                }
+            }
+        }
     
-    stage("push image") {
-      steps {
-        sh "docker tag ${IMAGE_NAME}:${TAG} ${ACCOUNT_NAME}:${TAG}"
-        sh "docker images"
-        sh "docker push ${ACCOUNT_NAME}:${TAG}" 
-      }
+        stage("Login to DockerHub") {
+            steps {
+                sh 'echo ${DOCKERHUB_CREDENIALS_USR}'
+                sh "echo ${DOCKERHUB_CREDENIALS_PSW} | docker login -u ${DOCKERHUB_CREDENIALS_USR} --password-stdin"
+            }
+        }
+    
+        stage("Push Image") {
+            steps {
+                sh "docker tag ${IMAGE_NAME}:${TAG} ${ACCOUNT_NAME}:${TAG}"
+                sh "docker images"
+                sh "docker push ${ACCOUNT_NAME}:${TAG}" 
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                sh 'docker rmi -f $(docker images -qa) || true'
+                sh 'docker logout'
+            }
+        }
     }
-  }
   
-  post {
-    always {
-      sh 'docker rmi -f $(docker images -qa)'
-      sh 'docker logout' 
+    post {
+        success {
+            echo "========pipeline executed successfully ========"    
+        }
+        failure {
+            echo "========pipeline execution failed========"
+        }
     }
-    success {
-      echo "========pipeline executed successfully ========"    
-    }
-  }
 }
