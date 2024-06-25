@@ -5,7 +5,7 @@ pipeline {
         REPO_URL = 'https://github.com/Asaf01/ci'
         IMAGE_NAME = 'wordpress'
         DOCKERFILE_DIR = 'cicd-docker-wordpress-pipeline'
-        DOCKERHUB_CREDENTIALS = 'dockerhublogin'  // Ensure this matches the ID of your credentials
+        DOCKERHUB_CREDENTIALS = 'dockerhublogin'  
         DOCKERHUB_REPO = 'bendrorasaf/wordpress'
         K8S_REPO_URL = 'https://github.com/Asaf01/WP_PROJECT'
         K8S_FILES_DIR = 'WP_PROJECT/K8S Deployment'
@@ -14,7 +14,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                // Checkout the repository
+                
                 git branch: 'main', url: "${REPO_URL}"
             }
         }
@@ -22,7 +22,7 @@ pipeline {
         stage('Determine Version') {
             steps {
                 script {
-                    // Fetch the latest version from Docker Hub and increment it
+                    
                     def latestTag = sh(
                         script: """
                         curl -s https://hub.docker.com/v2/repositories/${DOCKERHUB_REPO}/tags/?page_size=1 | grep -oP '"name":\\s*"v\\K\\d+' | sort -nr | head -n1
@@ -30,7 +30,7 @@ pipeline {
                         returnStdout: true
                     ).trim()
 
-                    // Increment the version number
+                    
                     def versionNumber = latestTag ? latestTag.toInteger() + 1 : 1
                     env.VERSION = "v${versionNumber}"
                 }
@@ -39,7 +39,7 @@ pipeline {
         
         stage('Build Docker Image') {
             steps {
-                // Build the Docker image
+                
                 script {
                     dockerImage = docker.build("${DOCKERHUB_REPO}:${VERSION}", "${DOCKERFILE_DIR}")
                 }
@@ -48,10 +48,10 @@ pipeline {
 
         stage('Test Docker Image') {
             steps {
-                // Run a container from the image and execute a test command
+                
                 script {
                     docker.image("${DOCKERHUB_REPO}:${VERSION}").inside {
-                        sh 'echo "Testing the Docker image..." && ls'  // Adjust this command based on your test requirements
+                        sh 'echo "Testing the Docker image..." && ls' 
                     }
                 }
             }
@@ -62,16 +62,16 @@ pipeline {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', "${DOCKERHUB_CREDENTIALS}") {
                         dockerImage.push("${VERSION}")
-                        // No need to push the latest tag
+                        
                     }
                 }
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Deploy to Kubernetes NOT WORKING !!!!!!!!!!!') {
             steps {
                 script {
-                    // Ensure kubectl is installed and configured
+                    
                     sh '''
                     if ! command -v kubectl &> /dev/null
                     then
@@ -108,7 +108,7 @@ pipeline {
 
         stage('Delete Workspace') {
             steps {
-                // Cleanup workspace
+                
                 deleteDir()
             }
         }
@@ -116,7 +116,7 @@ pipeline {
 
     post {
         always {
-            // Ensure workspace is cleaned up after the build
+            
             cleanWs()
         }
     }
