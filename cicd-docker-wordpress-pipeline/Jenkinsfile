@@ -68,43 +68,7 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes NOT WORKING !!!!!!!!!!!') {
-            steps {
-                script {
-                    
-                    sh '''
-                    if ! command -v kubectl &> /dev/null
-                    then
-                        echo "kubectl could not be found"
-                        # Install kubectl if not installed (example for Ubuntu)
-                        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-                        chmod +x kubectl
-                        sudo mv kubectl /usr/local/bin/
-                    fi
-
-                    # Ensure kubectl is configured to use Minikube
-                    if ! kubectl config current-context | grep -q 'minikube'
-                    then
-                        echo "Configuring kubectl to use Minikube"
-                        minikube start
-                        kubectl config use-context minikube
-                    fi
-
-                    # Clone the repository with Kubernetes deployment files
-                    git clone ${K8S_REPO_URL}
-
-                    # Apply the Kubernetes deployment files
-                    kubectl apply -f ${K8S_FILES_DIR}/mysql-pv.yaml
-                    kubectl apply -f ${K8S_FILES_DIR}/mysql-config.yaml
-                    kubectl apply -f ${K8S_FILES_DIR}/db-root-cred.yaml
-                    kubectl apply -f ${K8S_FILES_DIR}/db-cred.yaml
-                    kubectl apply -f ${K8S_FILES_DIR}/mysql.yaml
-                    kubectl apply -f ${K8S_FILES_DIR}/wp-configmap.yaml
-                    kubectl apply -f ${K8S_FILES_DIR}/wordpress.yaml
-                    '''
-                }
-            }
-        }
+        
 
         stage('Delete Workspace') {
             steps {
