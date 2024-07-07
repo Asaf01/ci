@@ -14,15 +14,13 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                
                 git branch: 'main', url: "${REPO_URL}"
             }
         }
-    }
-        stage('Determine Version') {
+
+        stage('Determine Version') { // Moved inside the stages block
             steps {
                 script {
-                    
                     def latestTag = sh(
                         script: """
                         curl -s https://hub.docker.com/v2/repositories/${DOCKERHUB_REPO}/tags/?page_size=1 | grep -oP '"name":\\s*"v\\K\\d+' | sort -nr | head -n1
@@ -30,25 +28,22 @@ pipeline {
                         returnStdout: true
                     ).trim()
 
-                    
                     def versionNumber = latestTag ? latestTag.toInteger() + 1 : 1
                     env.VERSION = "v${versionNumber}"
                 }
             }
         }
         
-        stage('Build Docker Image') {
+        stage('Build Docker Image') { // Moved inside the stages block
             steps {
-                
                 script {
                     dockerImage = docker.build("${DOCKERHUB_REPO}:${VERSION}", "${DOCKERFILE_DIR}")
                 }
             }
         }
 
-        stage('Test Docker Image') {
+        stage('Test Docker Image') { // Moved inside the stages block
             steps {
-                
                 script {
                     docker.image("${DOCKERHUB_REPO}:${VERSION}").inside {
                         sh 'echo "Testing the Docker image..." && ls' 
@@ -57,31 +52,26 @@ pipeline {
             }
         }
         
-        stage('Push Docker Image') {
+        stage('Push Docker Image') { // Moved inside the stages block
             steps {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', "${DOCKERHUB_CREDENTIALS}") {
                         dockerImage.push("${VERSION}")
-                        
                     }
                 }
             }
         }
 
-        
-
-        stage('Delete Workspace') {
+        stage('Delete Workspace') { // Moved inside the stages block
             steps {
-                
                 deleteDir()
             }
         }
-    
+    }
 
     post {
         always {
-            
             cleanWs()
         }
     }
-  }
+}
