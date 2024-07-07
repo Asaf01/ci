@@ -18,7 +18,7 @@ pipeline {
                 git branch: 'main', url: "${REPO_URL}"
             }
         }
-        
+    }
         stage('Determine Version') {
             steps {
                 script {
@@ -76,7 +76,7 @@ pipeline {
                 deleteDir()
             }
         }
-    }
+    
 
     post {
         always {
@@ -84,4 +84,4 @@ pipeline {
             cleanWs()
         }
     }
-}
+  }
