@@ -44,7 +44,7 @@ pipeline {
 
         stage('Test Docker Image') { // Moved inside the stages block
             steps {
-               {
+                    {
                         sh 'echo "Testing the Docker image..." && ls' 
                     
                 }
